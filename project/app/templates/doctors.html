@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Наша команда — Мир животных</title>
+  <meta name="description" content="Врачи ветеринарной клиники «Мир животных»: специализация и стаж.">
+  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <ol>
+          <li><a href="{% url 'index' %}">Главная</a></li>
+          <li aria-current="page">Наша команда</li>
+        </ol>
+      </nav>
+
+      <div class="page-head">
+        <h1>Наша команда</h1>
+        <p class="muted">Опытные врачи разных специализаций.</p>
+      </div>
+
+      <div class="grid">
+        {% for d in doctors %}
+        <article class="card">
+          <div class="avatar" aria-hidden="true">{{ d.initials }}</div>
+          <h2 class="card__title">{{ d.full_name }}</h2>
+          <p>{{ d.specialization }}</p>
+          <p class="muted small">Стаж, лет: {{ d.experience_years }} · {{ d.phone }}</p>
+          <div class="card__actions">
+            <a class="btn btn--outline" href="{% url 'appointment' %}?doctor={{ d.pk }}">Записаться к врачу</a>
+          </div>
+        </article>
+        {% empty %}
+        <p>Врачи пока не добавлены.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Пациенты — кабинет врача — Мир животных</title>
+  <meta name="description" content="Список пациентов клиники «Мир животных» для врачей.">
+  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <ol>
+          <li><a href="{% url 'index' %}">Главная</a></li>
+          <li aria-current="page">Пациенты</li>
+        </ol>
+      </nav>
+
+      <div class="page-head">
+        <h1>Список пациентов</h1>
+        <p class="muted">Здравствуйте, {{ user.get_username }}. Выберите питомца, чтобы открыть карту.</p>
+      </div>
+
+      <form class="toolbar" method="get" action="{% url 'patients' %}" role="search">
+        <div class="toolbar__field toolbar__field--wide">
+          <label for="q">Кличка или владелец</label>
+          <input id="q" type="search" name="q" value="{{ q }}" placeholder="Например: Рекс">
+        </div>
+        <button class="btn btn--primary toolbar__btn" type="submit">Найти</button>
+      </form>
+
+      <ul class="rows">
+        {% for p in page_obj %}
+        <li class="row">
+          <div class="row__main">
+            <h2 class="card__title"><a href="{% url 'patient_card' p.pk %}">{{ p.name }}</a></h2>
+            <p class="muted small">
+              {{ p.species.name }}{% if p.breed %}, {{ p.breed }}{% endif %} · {{ p.gender }} · {{ p.weight|floatformat:1 }} кг
+            </p>
+            <p class="small">Владелец: {{ p.owner.full_name }}, {{ p.owner.phone }}</p>
+          </div>
+          <p class="small">Родился: {{ p.birth_date|date:"d.m.Y" }}</p>
+          <a class="btn btn--outline" href="{% url 'patient_card' p.pk %}">Открыть карту</a>
+        </li>
+        {% empty %}
+        <li><p>Пациенты не найдены.</p></li>
+        {% endfor %}
+      </ul>
+
+      {% include 'pagination.html' with url_name='patients' %}
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

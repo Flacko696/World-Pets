@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход для врачей — Мир животных</title>
+  <meta name="description" content="Вход в кабинет врача клиники «Мир животных».">
+  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <div class="page-head">
+        <h1>Вход для врачей</h1>
+        <p class="muted">Кабинет доступен врачам и администратору.</p>
+      </div>
+
+      <form class="form" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {% for e in form.non_field_errors %}
+        <p class="error">{{ e }}</p>
+        {% endfor %}
+
+        <div class="field{% if form.username.errors %} field--error{% endif %}">
+          <label for="{{ form.username.id_for_label }}">Логин</label>
+          {{ form.username }}
+          {% for e in form.username.errors %}<p class="error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="field{% if form.password.errors %} field--error{% endif %}">
+          <label for="{{ form.password.id_for_label }}">Пароль</label>
+          {{ form.password }}
+          {% for e in form.password.errors %}<p class="error">{{ e }}</p>{% endfor %}
+        </div>
+
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="btn btn--primary" type="submit">Войти</button>
+      </form>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

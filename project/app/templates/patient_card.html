@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ pet.name }} — карта пациента — Мир животных</title>
+  <meta name="description" content="Карта пациента: история болезни и прививки.">
+  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <ol>
+          <li><a href="{% url 'index' %}">Главная</a></li>
+          <li><a href="{% url 'patients' %}">Пациенты</a></li>
+          <li aria-current="page">{{ pet.name }} ({{ pet.species.name }})</li>
+        </ol>
+      </nav>
+
+      <div class="page-head">
+        <h1>{{ pet.name }}</h1>
+      </div>
+
+      <dl class="facts">
+        <div><dt>Вид</dt><dd>{{ pet.species.name }}{% if pet.breed %}, {{ pet.breed }}{% endif %}</dd></div>
+        <div><dt>Пол</dt><dd>{{ pet.gender }}</dd></div>
+        <div><dt>Дата рождения</dt><dd>{{ pet.birth_date|date:"d.m.Y" }} (возраст: {{ pet.birth_date|timesince }})</dd></div>
+        <div><dt>Вес</dt><dd>{{ pet.weight|floatformat:1 }} кг</dd></div>
+        <div><dt>Владелец</dt><dd>{{ pet.owner.full_name }}</dd></div>
+        <div><dt>Телефон владельца</dt><dd>{{ pet.owner.phone }}</dd></div>
+      </dl>
+
+      <section class="section">
+        <h2>Прививки</h2>
+        {% if overdue_count %}
+        <p class="alert alert--warning" role="status">Просроченных прививок: {{ overdue_count }}. Нужно напомнить владельцу.</p>
+        {% endif %}
+        <ul class="rows">
+          {% for v in vaccinations %}
+          <li class="row{% if v.is_overdue %} row--overdue{% endif %}">
+            <div class="row__main">
+              <h3 class="card__title">{{ v.vaccine_name }}</h3>
+              <p class="muted small">
+                Сделана: {{ v.vaccination_date|date:"d.m.Y" }}
+                {% if v.doctor %}· врач {{ v.doctor.full_name }}{% endif %}
+                {% if v.batch_number %}· партия {{ v.batch_number }}{% endif %}
+              </p>
+            </div>
+            <p class="small">Действует до: {{ v.expiration_date|date:"d.m.Y" }}</p>
+            {% if v.is_overdue %}
+            <span class="badge badge--error">Просрочена</span>
+            {% else %}
+            <span class="badge badge--ok">Действует</span>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li><p>Прививок пока нет.</p></li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>История приёмов</h2>
+        <div class="rows">
+          {% for a in appointments %}
+          <article class="card">
+            <h3 class="card__title">{{ a.appointment_date|date:"d.m.Y" }}, {{ a.appointment_time|time:"H:i" }} · {{ a.status }}</h3>
+            <p class="muted small">{% if a.doctor %}Врач: {{ a.doctor.full_name }}{% endif %}</p>
+            {% if a.complaints %}<p>Жалобы: {{ a.complaints }}</p>{% endif %}
+            {% for d in a.diagnoses.all %}
+            <p><strong>Диагноз: {{ d.disease_name }}</strong> ({% if d.is_cured %}вылечен{% else %}на лечении{% endif %})</p>
+            <ul>
+              {% for p in d.prescriptions.all %}
+              <li class="small">{{ p.medication_or_procedure }}, {{ p.dosage }}, курс: {{ p.course_duration }}</li>
+              {% endfor %}
+            </ul>
+            {% endfor %}
+          </article>
+          {% empty %}
+          <p>Приёмов пока не было.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

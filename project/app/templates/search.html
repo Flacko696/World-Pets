@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Поиск — Мир животных</title>
+  <meta name="description" content="Поиск услуг и врачей клиники «Мир животных».">
+  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <ol>
+          <li><a href="{% url 'index' %}">Главная</a></li>
+          <li aria-current="page">Поиск</li>
+        </ol>
+      </nav>
+
+      <div class="page-head">
+        <h1>Поиск по сайту</h1>
+      </div>
+
+      <form class="toolbar" method="get" action="{% url 'search' %}" role="search">
+        <div class="toolbar__field toolbar__field--wide">
+          <label for="q">Что ищем?</label>
+          <input id="q" type="search" name="q" value="{{ q }}" placeholder="Название услуги или врача">
+        </div>
+        <button class="btn btn--primary toolbar__btn" type="submit">Найти</button>
+      </form>
+
+      {% if q %}
+      <p class="muted">По запросу «{{ q }}» найдено: услуг — {{ found_services|length }}, врачей — {{ found_doctors|length }}.</p>
+
+      <section class="section">
+        <h2>Услуги</h2>
+        <ul class="rows">
+          {% for s in found_services %}
+          <li class="row">
+            <div class="row__main">
+              <h3 class="card__title"><a href="{% url 'service_detail' s.pk %}">{{ s.name }}</a></h3>
+              <p class="muted small">{{ s.category }}</p>
+            </div>
+            <p class="card__price">от {{ s.price|floatformat:"0g" }} ₽</p>
+          </li>
+          {% empty %}
+          <li><p>Услуги не найдены.</p></li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="section">
+        <h2>Врачи</h2>
+        <ul class="rows">
+          {% for d in found_doctors %}
+          <li class="row">
+            <div class="row__main">
+              <h3 class="card__title">{{ d.full_name }}</h3>
+              <p class="muted small">{{ d.specialization }}</p>
+            </div>
+            <a class="btn btn--outline" href="{% url 'appointment' %}?doctor={{ d.pk }}">Записаться</a>
+          </li>
+          {% empty %}
+          <li><p>Врачи не найдены.</p></li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

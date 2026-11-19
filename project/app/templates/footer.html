@@ -1,0 +1,33 @@
+<footer class="footer">
+  <div class="container footer__grid">
+    <section>
+      <h2 class="footer__title">Мир животных</h2>
+      <p class="muted">Ветеринарная клиника в Ульяновске. Приём, прививки, вызов врача на дом.</p>
+    </section>
+    <nav aria-label="Разделы сайта">
+      <h2 class="footer__title">Разделы</h2>
+      <ul>
+        <li><a href="{% url 'services' %}">Услуги</a></li>
+        <li><a href="{% url 'doctors' %}">Врачи</a></li>
+        <li><a href="{% url 'search' %}">Поиск</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="Клиентам">
+      <h2 class="footer__title">Клиентам</h2>
+      <ul>
+        <li><a href="{% url 'appointment' %}">Онлайн-запись</a></li>
+        <li><a href="{% url 'contacts' %}">Контакты</a></li>
+        <li><a href="{% url 'login' %}">Кабинет врача</a></li>
+      </ul>
+    </nav>
+    <section>
+      <h2 class="footer__title">Контакты</h2>
+      <address>
+        <p>+7 (8422) 00-00-00</p>
+        <p>г. Ульяновск, ул. Гончарова, д. 10</p>
+        <p>Ежедневно 9:00–21:00</p>
+      </address>
+    </section>
+  </div>
+  <div class="container footer__copy">© {% now "Y" %} Ветеринарная клиника «Мир животных»</div>
+</footer>
