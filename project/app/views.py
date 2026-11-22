@@ -56,8 +56,23 @@ def doctors(request):
 
 
 def appointment(request):
-    # Пока просто показываем форму. Отправку сделаем в занятии 9
-    return render(request, 'appointment.html', {'form': AppointmentForm()})
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Заявка отправлена! Мы позвоним вам в течение 15 минут.')
+            return redirect('appointment')
+    else:
+        initial = {}
+        service_id = request.GET.get('service', '')
+        doctor_id = request.GET.get('doctor', '')
+        if service_id.isdigit():
+            service = Service.objects.filter(pk=service_id).first()
+            if service:
+                initial['complaints'] = f'Услуга: {service.name}. '
+        if doctor_id.isdigit():
+            initial['doctor'] = int(doctor_id)
+        form = AppointmentForm(initial=initial)
 
 
 def contacts(request):
