@@ -1,8 +1,10 @@
+import re
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django import forms
 
-from .models import AnimalSpecies, Doctor
+from .models import AnimalSpecies, Appointment, Doctor, Owner, Pet
 
 GENDERS = [('Самец', 'Самец'), ('Самка', 'Самка')]
 
@@ -42,6 +44,73 @@ class AppointmentForm(forms.Form):
         label='Жалобы (необязательно)', max_length=500, required=False,
         widget=forms.Textarea(attrs={'rows': 4}),
     )
+    def save(self):
+        data = self.cleaned_data
+        owner, _ = Owner.objects.get_or_create(
+            phone=data['phone'],
+            defaults={'full_name': data['full_name'], 'email': data['email'] or None},
+        )
+        pet, _ = Pet.objects.get_or_create(
+            owner=owner, name=data['pet_name'],
+            defaults={
+                'species': data['species'],
+                'birth_date': data['birth_date'],
+                'gender': data['gender'],
+                'weight': data['weight'],
+            },
+        )
+        return Appointment.objects.create(
+            pet=pet,
+            doctor=data['doctor'],
+            appointment_date=data['appointment_date'],
+            appointment_time=data['appointment_time'],
+            complaints=data['complaints'] or None,
+        )
+    def clean_phone(self):
+        digits = re.sub(r'\D', '', self.cleaned_data['phone'])
+        if len(digits) == 11 and digits[0] in '78':
+            digits = digits[1:]
+        if len(digits) != 10:
+            raise forms.ValidationError('Введите телефон, например +7 (902) 111-22-33')
+        return f'+7 ({digits[:3]}) {digits[3:6]}-{digits[6:8]}-{digits[8:]}'
+
+    def clean_birth_date(self):
+        birth_date = self.cleaned_data['birth_date']
+        if birth_date > date.today():
+            raise forms.ValidationError('Дата рождения не может быть в будущем')
+        if birth_date.year < date.today().year - 40:
+            raise forms.ValidationError('Проверьте дату рождения: питомцу не может быть больше 40 лет')
+        return birth_date
+
+    def clean_appointment_date(self):
+        appointment_date = self.cleaned_data['appointment_date']
+        if appointment_date < date.today():
+            raise forms.ValidationError('Выберите сегодняшнюю или будущую дату')
+        if appointment_date > date.today() + timedelta(days=365):
+            raise forms.ValidationError('Запись возможна не дальше чем на год вперёд')
+        return appointment_date
+
+    def clean_appointment_time(self):
+        appointment_time = self.cleaned_data['appointment_time']
+        if not (time(9, 0) <= appointment_time <= time(21, 0)):
+            raise forms.ValidationError('Клиника работает с 9:00 до 21:00')
+        return appointment_time
+
+    def clean(self):
+        cleaned = super().clean()
+        doctor = cleaned.get('doctor')
+        day = cleaned.get('appointment_date')
+        hour = cleaned.get('appointment_time')
+        if day and hour and datetime.combine(day, hour) < datetime.now():
+            self.add_error('appointment_time', 'Это время уже прошло, выберите другое')
+        elif doctor and day and hour:
+            busy = Appointment.objects.filter(
+                doctor=doctor, appointment_date=day, appointment_time=hour,
+            ).exclude(status='Отменён').exists()
+            if busy:
+                self.add_error('appointment_time', 'Это время у врача уже занято, выберите другое')
+        return cleaned
+
 class HomeVisitForm(AppointmentForm):
     # те же поля, что в обычной записи, плюс адрес; врач необязателен
     address = forms.CharField(
