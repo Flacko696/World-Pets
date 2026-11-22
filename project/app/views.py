@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from datetime import date
-from .forms import AppointmentForm, HomeVisitForm
+from .forms import AppointmentForm, FeedbackForm, HomeVisitForm
 from .models import Doctor, Pet, Service, Vaccination 
 
 PER_PAGE = 20   # пагинация по 20 записей (ТЗ)
@@ -117,29 +117,36 @@ def patients(request):
 @login_required
 def patient_card(request, pk):
     pet = get_object_or_404(Pet.objects.select_related('owner', 'species'), pk=pk)
-    vaccinations = pet.vaccinations.select_related('doctor').order_by('-vaccination_date')
+    vaccinations = list(pet.vaccinations.select_related('doctor').order_by('-vaccination_date'))
+    current = {v.pk for v in latest_vaccinations(pet.vaccinations.all())}
+    for v in vaccinations:
+        v.show_overdue = v.is_overdue and v.pk in current
+    overdue_count = sum(1 for v in vaccinations if v.show_overdue)
     appointments = (
         pet.appointments.select_related('doctor')
         .prefetch_related('diagnoses__prescriptions')
         .order_by('-appointment_date', '-appointment_time')
     )
-    overdue_count = sum(1 for v in vaccinations if v.is_overdue)   # просроченные прививки
     return render(request, 'patient_card.html', {
         'pet': pet, 'vaccinations': vaccinations,
         'appointments': appointments, 'overdue_count': overdue_count,
     })
 
+def latest_vaccinations(queryset):
+    """По каждой паре (питомец, название прививки) оставляет самую свежую запись."""
+    latest = {}
+    for v in queryset.order_by('vaccination_date', 'pk'):
+        latest[(v.pet_id, v.vaccine_name.lower())] = v
+    return list(latest.values())
+
+
 @login_required
 def reminders(request):
-    # все прививки, у которых срок действия уже прошёл
-    overdue = (
-        Vaccination.objects.filter(expiration_date__lt=date.today())
-        .select_related('pet__owner', 'pet__species')
-        .order_by('expiration_date')
-    )
+    vaccinations = Vaccination.objects.select_related('pet__owner', 'pet__species')
+    overdue = [v for v in latest_vaccinations(vaccinations) if v.is_overdue]
+    overdue.sort(key=lambda v: v.expiration_date)
     page_obj = Paginator(overdue, PER_PAGE).get_page(request.GET.get('page'))
     return render(request, 'reminders.html', {'page_obj': page_obj, 'querystring': ''})
-
 def home_visit(request):
     if request.method == 'POST':
         form = HomeVisitForm(request.POST)
@@ -150,3 +157,15 @@ def home_visit(request):
     else:
         form = HomeVisitForm()
     return render(request, 'home_visit.html', {'form': form})
+
+def feedback(request):
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Спасибо! Ваше обращение отправлено администратору.')
+            return redirect('feedback')
+    else:
+        form = FeedbackForm()
+    return render(request, 'feedback.html', {'form': form})
+
