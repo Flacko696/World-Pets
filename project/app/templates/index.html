@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Мир животных — ветеринарная клиника в Ульяновске</title>
   <meta name="description" content="Ветеринарная клиника «Мир животных»: приём врачей, прививки, вызов врача на дом.">
-  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/main.js' %}" defer></script>
 </head>
@@ -25,27 +25,25 @@
             <button class="btn btn--primary" type="submit">Найти</button>
           </form>
           <a class="btn btn--accent" href="{% url 'appointment' %}">Записаться на приём</a>
+          <a class="btn btn--outline" href="{% url 'home_visit' %}">Вызвать врача на дом</a>
         </div>
-        <img class="hero__img" src="{% static 'img/hero.svg' %}" alt="Иллюстрация: лапа питомца" width="480" height="360">
+        <img class="hero__img" src="{% static 'img/hero.webp' %}" alt="Немецкая овчарка" width="960" height="720" fetchpriority="high">
       </div>
     </section>
 
     <section class="section">
       <div class="container">
         <h2>Популярные услуги</h2>
-        <div class="grid">
+                <div class="grid">
           {% for s in services %}
-          <article class="card">
-            <div class="card__img">
-              <img src="{% static 'img/paw.svg' %}" alt="" width="64" height="64" loading="lazy">
-            </div>
+          <div class="card">
             <span class="tag">{{ s.category }}</span>
             <h3 class="card__title">{{ s.name }}</h3>
-            <p class="card__price">от {{ s.price|floatformat:"0g" }} ₽</p>
+            <p class="card__price">от {{ s.price|floatformat:0 }} ₽</p>
             <a class="btn btn--outline" href="{% url 'service_detail' s.pk %}">Подробнее</a>
-          </article>
+          </div>
           {% empty %}
-          <p>Услуги пока не добавлены. Добавьте их в админ-панели.</p>
+          <p>Услуги пока не добавлены.</p>
           {% endfor %}
         </div>
       </div>

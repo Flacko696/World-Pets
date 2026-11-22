@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Контакты — Мир животных</title>
   <meta name="description" content="Адрес, телефон и режим работы ветеринарной клиники «Мир животных».">
-  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/main.js' %}" defer></script>
 </head>
@@ -41,10 +41,11 @@
           <p>Ежедневно 9:00–21:00</p>
         </section>
       </div>
-
-      <section class="section">
+<div class="section">
+      
         <a class="btn btn--accent" href="{% url 'appointment' %}">Записаться на приём</a>
-      </section>
+      
+      </div>
     </div>
   </main>
 

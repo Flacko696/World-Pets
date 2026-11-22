@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ service.name }} — Мир животных</title>
   <meta name="description" content="{{ service.name }}: цена и запись на услугу в клинике «Мир животных».">
-  <link rel="icon" href="{% static 'img/paw.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/main.js' %}" defer></script>
 </head>
@@ -23,20 +23,17 @@
         </ol>
       </nav>
 
-      <article class="detail">
-        <div class="card__img detail__img">
-          <img src="{% static 'img/paw.svg' %}" alt="" width="64" height="64">
-        </div>
+            <div class="detail">
         <div class="detail__info">
           <span class="tag">{{ service.category }}</span>
           <h1>{{ service.name }}</h1>
           {% if service.description %}
           <p>{{ service.description }}</p>
           {% endif %}
-          <p class="price-big">от {{ service.price|floatformat:"0g" }} ₽</p>
+          <p class="price-big">от {{ service.price|floatformat:0 }} ₽</p>
           <a class="btn btn--accent" href="{% url 'appointment' %}?service={{ service.pk }}">Записаться на эту услугу</a>
         </div>
-      </article>
+      </div>
 
       {% if related %}
       <section class="section">

@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Напоминания о прививках — Мир животных</title>
+  <meta name="description" content="Список просроченных прививок и контакты владельцев.">
+  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <ol>
+          <li><a href="{% url 'index' %}">Главная</a></li>
+          <li aria-current="page">Напоминания</li>
+        </ol>
+      </nav>
+
+      <div class="page-head">
+        <h1>Напоминания о прививках</h1>
+        <p class="muted">Просроченных прививок: {{ page_obj.paginator.count }}. Свяжитесь с владельцами.</p>
+      </div>
+
+      <ul class="rows">
+        {% for v in page_obj %}
+        <li class="row row--overdue">
+          <div class="row__main">
+            <h2 class="card__title">{{ v.vaccine_name }} — {{ v.pet.name }} ({{ v.pet.species.name }})</h2>
+            <p class="small">Владелец: {{ v.pet.owner.full_name }}, {{ v.pet.owner.phone }}</p>
+          </div>
+          <p class="small">Срок истёк: {{ v.expiration_date|date:"d.m.Y" }} ({{ v.expiration_date|timesince }} назад)</p>
+          <a class="btn btn--outline" href="{% url 'patient_card' v.pet.pk %}">Открыть карту</a>
+        </li>
+        {% empty %}
+        <li><p>Просроченных прививок нет.</p></li>
+        {% endfor %}
+      </ul>
+
+      {% include 'pagination.html' with url_name='reminders' %}
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>

@@ -1,32 +1,32 @@
 <header class="header">
   <div class="container header__inner">
     <a class="logo" href="{% url 'index' %}">Мир животных</a>
-    <button class="burger" type="button" aria-expanded="false" aria-controls="menu">Меню ☰</button>
+    <button class="burger" type="button">Меню ☰</button>
 
     <div class="header__menu" id="menu">
-      <nav aria-label="Основное меню">
+      <nav>
         <ul class="nav">
-          {% for item in menu %}
           <li>
-            <a href="{% url item.route %}"{% if request.resolver_match.url_name == item.route %} aria-current="page"{% endif %}>{{ item.title }}</a>
+            <a href="{% url 'services' %}"{% if request.resolver_match.url_name == 'services' or request.resolver_match.url_name == 'service_detail' %} class="active"{% endif %}>Услуги</a>
           </li>
-          {% endfor %}
+          <li>
+            <a href="{% url 'doctors' %}"{% if request.resolver_match.url_name == 'doctors' %} class="active"{% endif %}>Врачи</a>
+          </li>
+          <li>
+            <a href="{% url 'appointment' %}"{% if request.resolver_match.url_name == 'appointment' %} class="active"{% endif %}>Онлайн-запись</a>
+          </li>
+                    <li>
+            <a href="{% url 'home_visit' %}"{% if request.resolver_match.url_name == 'home_visit' %} class="active"{% endif %}>Вызов на дом</a>
+          </li>
+          <li>
+            <a href="{% url 'contacts' %}"{% if request.resolver_match.url_name == 'contacts' %} class="active"{% endif %}>Контакты</a>
+          </li>
         </ul>
       </nav>
 
       <div class="header__actions">
-        <span class="fav-badge" title="Избранные услуги">♥ <span id="fav-count">0</span></span>
+        <span class="fav-badge">♥ <span id="fav-count">0</span></span>
         <a class="phone" href="tel:+78422000000">+7 (8422) 00-00-00</a>
-        {% if user.is_authenticated %}
-        <a class="link" href="{% url 'patients' %}">Кабинет врача</a>
-        <a class="link" href="{% url 'reminders' %}">Напоминания</a>
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="btn btn--outline" type="submit">Выйти</button>
-        </form>
-        {% else %}
-        <a class="link" href="{% url 'login' %}">Войти</a>
-        {% endif %}
         <a class="btn btn--primary" href="{% url 'appointment' %}">Записаться</a>
       </div>
     </div>

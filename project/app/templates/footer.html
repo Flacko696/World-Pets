@@ -1,33 +1,38 @@
 <footer class="footer">
   <div class="container footer__grid">
-    <section>
+    <div>
       <h2 class="footer__title">Мир животных</h2>
       <p class="muted">Ветеринарная клиника в Ульяновске. Приём, прививки, вызов врача на дом.</p>
-    </section>
-    <nav aria-label="Разделы сайта">
-      <h2 class="footer__title">Разделы</h2>
-      <ul>
-        <li><a href="{% url 'services' %}">Услуги</a></li>
-        <li><a href="{% url 'doctors' %}">Врачи</a></li>
-        <li><a href="{% url 'search' %}">Поиск</a></li>
-      </ul>
-    </nav>
-    <nav aria-label="Клиентам">
-      <h2 class="footer__title">Клиентам</h2>
-      <ul>
-        <li><a href="{% url 'appointment' %}">Онлайн-запись</a></li>
-        <li><a href="{% url 'contacts' %}">Контакты</a></li>
-        <li><a href="{% url 'login' %}">Кабинет врача</a></li>
-      </ul>
-    </nav>
-    <section>
+    </div>
+
+    <div>
       <h2 class="footer__title">Контакты</h2>
       <address>
-        <p>+7 (8422) 00-00-00</p>
+        <p>+7 (842) 11-22-33</p>
         <p>г. Ульяновск, ул. Гончарова, д. 10</p>
         <p>Ежедневно 9:00–21:00</p>
       </address>
-    </section>
+    </div>
+
+    <div class="footer__staff">
+      <h2 class="footer__title">Для персонала</h2>
+      {% if user.is_authenticated %}
+      <ul>
+        <li><a href="{% url 'patients' %}">Кабинет врача</a></li>
+        <li><a href="{% url 'reminders' %}">Напоминания</a></li>
+        {% if user.is_staff %}
+        <li><a href="{% url 'admin:index' %}">Админ-панель</a></li>
+        {% endif %}
+      </ul>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="btn btn--outline" type="submit">Выйти</button>
+      </form>
+      {% else %}
+      <p class="muted">Вход для врачей и администратора.</p>
+      <a class="btn btn--outline" href="{% url 'login' %}">Войти</a>
+      {% endif %}
+    </div>
   </div>
   <div class="container footer__copy">© {% now "Y" %} Ветеринарная клиника «Мир животных»</div>
 </footer>
