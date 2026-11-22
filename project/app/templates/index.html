@@ -20,7 +20,7 @@
           <h1>Ветеринарная клиника «Мир животных»</h1>
           <p class="lead">Приём врачей, прививки и вызов врача на дом в Ульяновске. Напомним, когда пора делать повторную прививку.</p>
           <form class="hero__search" action="{% url 'search' %}" method="get" role="search">
-            <label class="visually-hidden" for="hero-q">Поиск по сайту</label>
+            <input id="hero-q" type="search" name="q" placeholder="Например: вакцинация" aria-label="Поиск по сайту">
             <input id="hero-q" type="search" name="q" placeholder="Например: вакцинация">
             <button class="btn btn--primary" type="submit">Найти</button>
           </form>
