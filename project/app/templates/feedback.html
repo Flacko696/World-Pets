@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Связь с нами — Мир животных</title>
+  <meta name="description" content="Напишите администратору ветеринарной клиники «Мир животных».">
+  <link rel="icon" href="{% static 'img/paw.png' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body>
+  {% include 'header.html' %}
+
+  <main>
+    <div class="container">
+      <p class="breadcrumbs"><a href="{% url 'index' %}">Главная</a> / Связь с нами</p>
+
+      <div class="page-head">
+        <h1>Связь с администратором</h1>
+        <p class="muted">Напишите нам, и администратор свяжется с вами.</p>
+      </div>
+
+      {% for message in messages %}
+      <p class="alert alert--{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+
+      <form class="form" method="post" action="{% url 'feedback' %}">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="field{% if field.errors %} field--error{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for e in field.errors %}<p class="error">{{ e }}</p>{% endfor %}
+        </div>
+        {% endfor %}
+        <button class="btn btn--primary" type="submit">Отправить</button>
+      </form>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+</body>
+</html>
