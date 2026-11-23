@@ -110,6 +110,18 @@ class AppointmentForm(forms.Form):
             if busy:
                 self.add_error('appointment_time', 'Это время у врача уже занято, выберите другое')
         return cleaned
+    
+    def clean_full_name(self):
+        name = ' '.join(self.cleaned_data['full_name'].split())
+        if len(name) < 5:
+            raise forms.ValidationError('Введите ФИО полностью')
+        return name
+
+    def clean_pet_name(self):
+        name = self.cleaned_data['pet_name'].strip()
+        if len(name) < 2:
+            raise forms.ValidationError('Кличка слишком короткая')
+        return name
 
 class HomeVisitForm(AppointmentForm):
     # те же поля, что в обычной записи, плюс адрес; врач необязателен
