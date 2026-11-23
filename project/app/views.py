@@ -120,6 +120,7 @@ def patients(request):
     return render(request, 'patients.html', {
         'page_obj': page_obj, 'q': q, 'querystring': params.urlencode(),
     })
+
 def doctor_required(view):
     @login_required
     @wraps(view)
@@ -131,7 +132,7 @@ def doctor_required(view):
     return wrapper
 
 
-@login_required
+@doctor_required
 def patient_card(request, pk):
     pet = get_object_or_404(Pet.objects.select_related('owner', 'species'), pk=pk)
     vaccinations = list(pet.vaccinations.select_related('doctor').order_by('-vaccination_date'))
@@ -157,7 +158,7 @@ def latest_vaccinations(queryset):
     return list(latest.values())
 
 
-@login_required
+@doctor_required
 def reminders(request):
     vaccinations = Vaccination.objects.select_related('pet__owner', 'pet__species')
     overdue = [v for v in latest_vaccinations(vaccinations) if v.is_overdue]
