@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django import forms
 
-from .models import AnimalSpecies, Appointment, Doctor, Owner, Pet
+from .models import AnimalSpecies, Appointment, Doctor, Feedback, Owner, Pet
 
 GENDERS = [('Самец', 'Самец'), ('Самка', 'Самка')]
 
@@ -130,10 +130,31 @@ class HomeVisitForm(AppointmentForm):
     ]
 
     def save(self):
-        appointment = super().save()                 # создаём владельца, питомца и приём как обычно
-        appointment.status = 'Вызов на дом'          # помечаем, что это вызов
+        appointment = super().save()
+        appointment.status = 'Вызов на дом'
+        address = self.cleaned_data['address']
+        appointment.complaints = f'Адрес визита: {address}. ' + (appointment.complaints or '')
         appointment.save()
         owner = appointment.pet.owner
-        owner.address = self.cleaned_data['address'] # сохраняем адрес владельца
-        owner.save()
+        if not owner.address:                # записываем адрес, только если там пусто
+            owner.address = address
+            owner.save()
         return appointment
+    
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['name', 'contact', 'message']
+        widgets = {'message': forms.Textarea(attrs={'rows': 4})}
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if len(name) < 2:
+            raise forms.ValidationError('Введите имя')
+        return name
+
+    def clean_message(self):
+        message = self.cleaned_data['message'].strip()
+        if len(message) < 10:
+            raise forms.ValidationError('Сообщение слишком короткое (минимум 10 символов)')
+        return message
