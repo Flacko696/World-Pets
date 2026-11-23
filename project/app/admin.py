@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     Owner, AnimalSpecies, Pet, Doctor, Service,
     Appointment, Diagnosis, Prescription,
-    VaccineSchedule, Vaccination
+    VaccineSchedule, Vaccination, Feedback
 )
 
 admin.site.register(Owner)
@@ -15,3 +15,4 @@ admin.site.register(Diagnosis)
 admin.site.register(Prescription)
 admin.site.register(VaccineSchedule)
 admin.site.register(Vaccination)
+admin.site.register(Feedback)

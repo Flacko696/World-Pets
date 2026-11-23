@@ -6,27 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Контакты — Мир животных</title>
   <meta name="description" content="Адрес, телефон и режим работы ветеринарной клиники «Мир животных».">
-  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/png">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/main.js' %}" defer></script>
 </head>
 <body>
   {% include 'header.html' %}
 
-
-
-      <section class="section">
-        <a class="btn btn--outline" href="{% url 'feedback' %}">Написать администратору</a>
-      </section>
-
   <main>
     <div class="container">
-      <nav class="breadcrumbs" aria-label="Хлебные крошки">
-        <ol>
-          <li><a href="{% url 'index' %}">Главная</a></li>
-          <li aria-current="page">Контакты</li>
-        </ol>
-      </nav>
+      <p class="breadcrumbs"><a href="{% url 'index' %}">Главная</a> / Контакты</p>
 
       <div class="page-head">
         <h1>Контакты</h1>
@@ -34,24 +23,24 @@
       </div>
 
       <div class="grid">
-        <section class="card">
+        <div class="card">
           <h2 class="card__title">Адрес</h2>
-          <address><p>г. Ульяновск, ул. Гончарова, д. 10</p></address>
-        </section>
-        <section class="card">
+          <p>г. Ульяновск, ул. Гончарова, д. 10</p>
+        </div>
+        <div class="card">
           <h2 class="card__title">Телефон</h2>
           <p><a href="tel:+78422000000">+7 (8422) 00-00-00</a></p>
-        </section>
-        <section class="card">
+        </div>
+        <div class="card">
           <h2 class="card__title">Режим работы</h2>
           <p>Ежедневно 9:00–21:00</p>
-        </section>
+        </div>
       </div>
-<div class="section">
-      
+
+      <section class="section actions">
         <a class="btn btn--accent" href="{% url 'appointment' %}">Записаться на приём</a>
-      
-      </div>
+        <a class="btn btn--outline" href="{% url 'feedback' %}">Написать администратору</a>
+      </section>
     </div>
   </main>
 

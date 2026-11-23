@@ -20,6 +20,10 @@
         <p class="muted">Кабинет доступен врачам и администратору.</p>
       </div>
 
+            {% if lock_message %}
+      <p class="alert alert--error">{{ lock_message }}</p>
+      {% endif %}
+      
       <form class="form" method="post" action="{% url 'login' %}">
         {% csrf_token %}
         {% for e in form.non_field_errors %}

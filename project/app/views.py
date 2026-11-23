@@ -22,6 +22,16 @@ def index(request):
     doctors = Doctor.objects.all()[:3]
     return render(request, 'index.html', {'services': services, 'doctors': doctors})
 
+def too_many(request, name, limit=10, seconds=600):
+    """True, если с одного адреса слишком много отправок формы name."""
+    key = f'rate:{name}:{request.META.get("REMOTE_ADDR", "")}'
+    cache.add(key, 0, seconds)
+    try:
+        count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, seconds)
+        count = 1
+    return count > limit
 
 def services(request):
     q = request.GET.get('q', '').strip()
@@ -64,6 +74,9 @@ def doctors(request):
 
 def appointment(request):
     if request.method == 'POST':
+        if too_many(request, 'appointment'):
+            messages.error(request, 'Слишком много заявок с вашего адреса. Попробуйте позже.')
+            return redirect('appointment')
         form = AppointmentForm(request.POST)
         if form.is_valid():
             form.save()

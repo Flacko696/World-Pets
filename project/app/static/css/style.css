@@ -891,3 +891,9 @@ textarea {
     font-size: 28px;
   }
 }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}

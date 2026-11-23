@@ -124,3 +124,13 @@ if (favOnlyBtn) {
 }
 
 updateFavs();
+
+const burger = document.querySelector('.burger');
+const menu = document.getElementById('menu');
+
+if (burger && menu) {
+  burger.addEventListener('click', function () {
+    const isOpen = menu.classList.toggle('is-open');
+    burger.setAttribute('aria-expanded', String(isOpen));
+  });
+}

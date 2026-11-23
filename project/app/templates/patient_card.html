@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ pet.name }} — карта пациента — Мир животных</title>
   <meta name="description" content="Карта пациента: история болезни и прививки.">
-  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'img/paw.png' %}" type="image/png">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/main.js' %}" defer></script>
 </head>
@@ -43,7 +43,7 @@
         {% endif %}
         <ul class="rows">
           {% for v in vaccinations %}
-          <li class="row{% if v.is_overdue %} row--overdue{% endif %}">
+          <li class="row{% if v.show_overdue %} row--overdue{% endif %}">
             <div class="row__main">
               <h3 class="card__title">{{ v.vaccine_name }}</h3>
               <p class="muted small">
@@ -53,8 +53,10 @@
               </p>
             </div>
             <p class="small">Действует до: {{ v.expiration_date|date:"d.m.Y" }}</p>
-            {% if v.is_overdue %}
+            {% if v.show_overdue %}
             <span class="badge badge--error">Просрочена</span>
+            {% elif v.is_overdue %}
+            <span class="badge badge--ok">Заменена новой</span>
             {% else %}
             <span class="badge badge--ok">Действует</span>
             {% endif %}
