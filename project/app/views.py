@@ -1,3 +1,8 @@
+
+import logging
+from django.contrib.auth.views import LoginView
+from django.core.cache import cache
+logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -5,6 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from datetime import date
 from .forms import AppointmentForm, FeedbackForm, HomeVisitForm
 from .models import Doctor, Pet, Service, Vaccination 
+from functools import wraps
+from django.core.exceptions import PermissionDenied
 
 PER_PAGE = 20   # пагинация по 20 записей (ТЗ)
 SORTS = {'price_asc': 'price', 'price_desc': '-price', 'name': 'name'}
@@ -73,6 +80,7 @@ def appointment(request):
         if doctor_id.isdigit():
             initial['doctor'] = int(doctor_id)
         form = AppointmentForm(initial=initial)
+    return render(request, 'appointment.html', {'form': form})
 
 
 def contacts(request):
@@ -112,6 +120,15 @@ def patients(request):
     return render(request, 'patients.html', {
         'page_obj': page_obj, 'q': q, 'querystring': params.urlencode(),
     })
+def doctor_required(view):
+    @login_required
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        user = request.user
+        if user.is_superuser or user.groups.filter(name='Врачи').exists():
+            return view(request, *args, **kwargs)
+        raise PermissionDenied
+    return wrapper
 
 
 @login_required
@@ -147,6 +164,7 @@ def reminders(request):
     overdue.sort(key=lambda v: v.expiration_date)
     page_obj = Paginator(overdue, PER_PAGE).get_page(request.GET.get('page'))
     return render(request, 'reminders.html', {'page_obj': page_obj, 'querystring': ''})
+
 def home_visit(request):
     if request.method == 'POST':
         form = HomeVisitForm(request.POST)
@@ -169,3 +187,32 @@ def feedback(request):
         form = FeedbackForm()
     return render(request, 'feedback.html', {'form': form})
 
+class LimitedLoginView(LoginView):
+    template_name = 'login.html'
+    MAX_ATTEMPTS = 5
+    LOCK_SECONDS = 300
+
+    def _key(self, request):
+        ip = request.META.get('REMOTE_ADDR', '')
+        username = request.POST.get('username', '').lower()
+        return f'login_fail:{ip}:{username}'
+
+    def post(self, request, *args, **kwargs):
+        if cache.get(self._key(request), 0) >= self.MAX_ATTEMPTS:
+            form = self.get_form_class()(request)
+            context = self.get_context_data(
+                form=form,
+                lock_message='Слишком много попыток входа. Попробуйте через 5 минут.',
+            )
+            return self.render_to_response(context, status=429)
+        return super().post(request, *args, **kwargs)
+
+    def form_invalid(self, form):
+        key = self._key(self.request)
+        cache.set(key, cache.get(key, 0) + 1, self.LOCK_SECONDS)
+        logger.warning('Неудачная попытка входа: %s', self.request.POST.get('username', ''))
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+        cache.delete(self._key(self.request))
+        return super().form_valid(form)
