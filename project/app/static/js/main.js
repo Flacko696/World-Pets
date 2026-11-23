@@ -134,3 +134,22 @@ if (burger && menu) {
     burger.setAttribute('aria-expanded', String(isOpen));
   });
 }
+
+document.querySelectorAll('form[method="post"]').forEach(function (form) {
+  const btn = form.querySelector('button[type="submit"]');
+  if (!btn) return;
+  form.addEventListener('submit', function (event) {
+    if (event.defaultPrevented) return;      // форма не прошла проверку, не блокируем
+    btn.dataset.text = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Отправляем...';
+  });
+});
+
+// кнопка «Назад» в браузере: возвращаем кнопки в рабочий вид
+window.addEventListener('pageshow', function () {
+  document.querySelectorAll('button[data-text]').forEach(function (btn) {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.text;
+  });
+});
