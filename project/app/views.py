@@ -1,4 +1,3 @@
-
 import logging
 from django.contrib.auth.views import LoginView
 from django.core.cache import cache
@@ -9,12 +8,23 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from datetime import date
 from .forms import AppointmentForm, FeedbackForm, HomeVisitForm
-from .models import Doctor, Pet, Service, Vaccination 
+from .models import Doctor, Pet, Service, Vaccination
 from functools import wraps
 from django.core.exceptions import PermissionDenied
 
 PER_PAGE = 20   # пагинация по 20 записей (ТЗ)
 SORTS = {'price_asc': 'price', 'price_desc': '-price', 'name': 'name'}
+
+
+def doctor_required(view):
+    @login_required
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        user = request.user
+        if user.is_superuser or user.groups.filter(name='Врачи').exists():
+            return view(request, *args, **kwargs)
+        raise PermissionDenied
+    return wrapper
 
 
 def index(request):
@@ -97,7 +107,10 @@ def appointment(request):
 
 
 def contacts(request):
+
     return render(request, 'contacts.html')
+
+
 
 
 def search(request):
@@ -119,7 +132,7 @@ def search(request):
     })
 
 
-@login_required   # без входа пустит на /login/
+@doctor_required   # без входа пустит на /login/, без группы «Врачи» даст 403
 def patients(request):
     q = request.GET.get('q', '').strip()
     pets = Pet.objects.select_related('owner', 'species').order_by('name')
@@ -133,16 +146,6 @@ def patients(request):
     return render(request, 'patients.html', {
         'page_obj': page_obj, 'q': q, 'querystring': params.urlencode(),
     })
-
-def doctor_required(view):
-    @login_required
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        user = request.user
-        if user.is_superuser or user.groups.filter(name='Врачи').exists():
-            return view(request, *args, **kwargs)
-        raise PermissionDenied
-    return wrapper
 
 
 @doctor_required
