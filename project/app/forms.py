@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django import forms
+from django.db import transaction
 
 from .models import AnimalSpecies, Appointment, Doctor, Feedback, Owner, Pet
 
@@ -44,28 +45,32 @@ class AppointmentForm(forms.Form):
         label='Жалобы (необязательно)', max_length=500, required=False,
         widget=forms.Textarea(attrs={'rows': 4}),
     )
+
     def save(self):
         data = self.cleaned_data
-        owner, _ = Owner.objects.get_or_create(
-            phone=data['phone'],
-            defaults={'full_name': data['full_name'], 'email': data['email'] or None},
-        )
-        pet, _ = Pet.objects.get_or_create(
-            owner=owner, name=data['pet_name'],
-            defaults={
-                'species': data['species'],
-                'birth_date': data['birth_date'],
-                'gender': data['gender'],
-                'weight': data['weight'],
-            },
-        )
-        return Appointment.objects.create(
-            pet=pet,
-            doctor=data['doctor'],
-            appointment_date=data['appointment_date'],
-            appointment_time=data['appointment_time'],
-            complaints=data['complaints'] or None,
-        )
+        # всё сохранение в одной транзакции: при сбое посередине откатится целиком
+        with transaction.atomic():
+            owner, _ = Owner.objects.get_or_create(
+                phone=data['phone'],
+                defaults={'full_name': data['full_name'], 'email': data['email'] or None},
+            )
+            pet, _ = Pet.objects.get_or_create(
+                owner=owner, name=data['pet_name'],
+                defaults={
+                    'species': data['species'],
+                    'birth_date': data['birth_date'],
+                    'gender': data['gender'],
+                    'weight': data['weight'],
+                },
+            )
+            return Appointment.objects.create(
+                pet=pet,
+                doctor=data['doctor'],
+                appointment_date=data['appointment_date'],
+                appointment_time=data['appointment_time'],
+                complaints=data['complaints'] or None,
+            )
+
     def clean_phone(self):
         digits = re.sub(r'\D', '', self.cleaned_data['phone'])
         if len(digits) == 11 and digits[0] in '78':
@@ -110,7 +115,7 @@ class AppointmentForm(forms.Form):
             if busy:
                 self.add_error('appointment_time', 'Это время у врача уже занято, выберите другое')
         return cleaned
-    
+
     def clean_full_name(self):
         name = ' '.join(self.cleaned_data['full_name'].split())
         if len(name) < 5:
@@ -122,6 +127,7 @@ class AppointmentForm(forms.Form):
         if len(name) < 2:
             raise forms.ValidationError('Кличка слишком короткая')
         return name
+
 
 class HomeVisitForm(AppointmentForm):
     # те же поля, что в обычной записи, плюс адрес; врач необязателен
@@ -142,17 +148,19 @@ class HomeVisitForm(AppointmentForm):
     ]
 
     def save(self):
-        appointment = super().save()
-        appointment.status = 'Вызов на дом'
-        address = self.cleaned_data['address']
-        appointment.complaints = f'Адрес визита: {address}. ' + (appointment.complaints or '')
-        appointment.save()
-        owner = appointment.pet.owner
-        if not owner.address:                # записываем адрес, только если там пусто
-            owner.address = address
-            owner.save()
-        return appointment
-    
+        with transaction.atomic():
+            appointment = super().save()
+            appointment.status = 'Вызов на дом'
+            address = self.cleaned_data['address']
+            appointment.complaints = f'Адрес визита: {address}. ' + (appointment.complaints or '')
+            appointment.save()
+            owner = appointment.pet.owner
+            if not owner.address:                # записываем адрес, только если там пусто
+                owner.address = address
+                owner.save()
+            return appointment
+
+
 class FeedbackForm(forms.ModelForm):
     class Meta:
         model = Feedback
